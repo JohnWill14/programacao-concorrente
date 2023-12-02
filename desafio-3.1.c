@@ -53,27 +53,46 @@ int buscaXNoVetor(void){
     int tamanho_inter = ceil(nElem/(num_thread*1.0));
     int limit = num_thread;
     
+    time_t tempoSeg;
+    struct tm *tempoLocal;
+
+
+    time(&tempoSeg);
+    tempoLocal = localtime(&tempoSeg);
+    printf("\nHorario Inicial: %s \n", asctime(tempoLocal));
     
     for(int i=0;i<num_thread;i++){
     	inter[i].ini = (tamanho_inter*i);
-	inter[i].fim = inter[i].ini+tamanho_inter;
+	inter[i].fim = inter[i].ini+tamanho_inter-1;
 	inter[i].qtd = 0;
 	inter[i].busc = X;
 
-	if(inter[i].ini>nElem){
-		limit = nElem;
+	if(inter[i].ini>=nElem){
+		limit = i;
 		break;
+	}
+
+	if(inter[i].fim >= nElem){
+	    inter[i].fim = nElem - 1;
 	}
 
     	resp[i] = pthread_create(thread+i, NULL, busca, (void*) (inter+i));
     }
 
+    
     int qtd = 0;
 
     for (i=0; i<limit; i++){
+
         pthread_join(thread[i], NULL);
-        qtd += inter[i].qtd;
+	printf("thread %d - busca inicio: %d fim: %d encontrou %d ocorrencia(s)\n", i+1, inter[i].ini, inter[i].fim, inter[i].qtd);
+	
+	qtd += inter[i].qtd;
     }
+
+     time(&tempoSeg);
+     tempoLocal = localtime(&tempoSeg);
+     printf("\nHorario Final: %s \n", asctime(tempoLocal));
 
     return qtd;
 
@@ -87,6 +106,7 @@ void main()
 
     printf("\nQual o tamanho do vetor => ");
     scanf("%d",&nElem);
+    
 
     geraVetor();
 
@@ -94,6 +114,11 @@ void main()
     scanf("%d",&X);
 
     quant=buscaXNoVetor();
+    
+    for(int i=0;i<nElem;i++){
+	if(V[i]==-1)
+    		printf("%d encontrado na posicao %d do vetor\n", X, i);
+    }
 
     printf("\nNumero de Elementos Encontrados => %d\n", quant);
 }
